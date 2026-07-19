@@ -458,6 +458,21 @@ h1, h2, h3 {
     padding: 20px;
     background: #FFFFFF;
 }
+.decision-badge {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 15px;
+    margin: 10px 0 16px 0;
+}
+.decision-approved {
+    background: #DCFCE7;
+    color: #166534 !important;
+}
+.decision-rejected {
+    background: #FEE2E2;
+    color: #991B1B !important;
+}
 .badge-regulated {
     display: inline-block;
     background: #DCFCE7;
@@ -473,15 +488,23 @@ h1, h2, h3 {
     font-size: 30px;
     font-weight: 800;
     font-family: 'Sora', sans-serif;
-    color: #0F172A;
+    color: #0F172A !important;
 }
 .section-title {
     font-family: 'Sora', sans-serif;
     font-weight: 700;
     font-size: 20px;
-    margin-top: 6px;
+    margin-top: 14px;
     margin-bottom: 10px;
-    color: #0F172A;
+    padding: 6px 2px;
+    color: #0F172A !important;
+}
+/* Force every element inside our custom cards to render dark text
+   regardless of the viewer's light/dark theme -- these cards always
+   sit on an explicit white/light background, so text color must
+   never fall back to Streamlit's theme-driven default. */
+.channel-card, .channel-card * {
+    color: #0F172A !important;
 }
 </style>
 """
@@ -585,18 +608,26 @@ def render_risk_block(tier: int, probability: float):
 
 
 def render_channel_card(col, channel: dict):
+    decision_class = "decision-approved" if channel["decision"] == "APPROVED" else "decision-rejected"
+    decision_icon = "✅" if channel["decision"] == "APPROVED" else "⛔"
+    # Built as ONE html string in ONE st.markdown call -- splitting an opening
+    # and closing <div> across separate st.markdown()/st.write() calls does
+    # NOT nest them in Streamlit's DOM, which silently drops the card's
+    # background and breaks text contrast under a dark viewer theme.
+    card_html = f"""
+    <div class="channel-card">
+        <h4 style="margin-top:0;">{channel['channel']}</h4>
+        <div class="decision-badge {decision_class}">{decision_icon} Decision: {channel['decision']}</div>
+        <div class="rate-tag">{channel['rate']:.2f}%</div>
+        <p style="font-size:13px; color:#64748B !important; margin-top:4px;">
+            Annualized interest rate (dynamic, incl. time-of-day adjustment)
+        </p>
+        <p style="margin-top:10px;">{channel['lenders']}</p>
+        <span class="badge-regulated">REGULATED ENTITY</span>
+    </div>
+    """
     with col:
-        st.markdown('<div class="channel-card">', unsafe_allow_html=True)
-        st.markdown(f"#### {channel['channel']}")
-        if channel["decision"] == "APPROVED":
-            st.success(f"Decision: {channel['decision']}")
-        else:
-            st.error(f"Decision: {channel['decision']}")
-        st.markdown(f'<div class="rate-tag">{channel["rate"]:.2f}%</div>', unsafe_allow_html=True)
-        st.caption("Annualized interest rate (dynamic, incl. time-of-day adjustment)")
-        st.write(channel["lenders"])
-        st.markdown('<span class="badge-regulated">REGULATED ENTITY</span>', unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown(card_html, unsafe_allow_html=True)
 
 
 def render_batch_scoring(pipeline, final_features, final_categorical):
