@@ -453,10 +453,11 @@ h1, h2, h3 {
     font-size: 14px;
 }
 .channel-card {
-    border: 1px solid #E2E8F0;
+    border: 1px solid #2D3B52;
     border-radius: 14px;
     padding: 20px;
-    background: #FFFFFF;
+    background: #16213A;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
 }
 .decision-badge {
     padding: 10px 14px;
@@ -466,29 +467,32 @@ h1, h2, h3 {
     margin: 10px 0 16px 0;
 }
 .decision-approved {
-    background: #DCFCE7;
-    color: #166534 !important;
+    background: rgba(34, 197, 94, 0.16);
+    color: #4ADE80 !important;
+    border: 1px solid rgba(74, 222, 128, 0.35);
 }
 .decision-rejected {
-    background: #FEE2E2;
-    color: #991B1B !important;
+    background: rgba(239, 68, 68, 0.16);
+    color: #F87171 !important;
+    border: 1px solid rgba(248, 113, 113, 0.35);
 }
 .badge-regulated {
     display: inline-block;
-    background: #DCFCE7;
-    color: #166534;
+    background: rgba(34, 197, 94, 0.16);
+    color: #4ADE80;
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.04em;
     padding: 4px 10px;
     border-radius: 999px;
     margin-top: 8px;
+    border: 1px solid rgba(74, 222, 128, 0.35);
 }
 .rate-tag {
     font-size: 30px;
     font-weight: 800;
     font-family: 'Sora', sans-serif;
-    color: #0F172A !important;
+    color: #F8FAFC !important;
 }
 .section-title {
     font-family: 'Sora', sans-serif;
@@ -499,12 +503,16 @@ h1, h2, h3 {
     padding: 6px 2px;
     color: #0F172A !important;
 }
-/* Force every element inside our custom cards to render dark text
-   regardless of the viewer's light/dark theme -- these cards always
-   sit on an explicit white/light background, so text color must
-   never fall back to Streamlit's theme-driven default. */
+/* Every element inside our custom dark cards renders light text,
+   set inline via the element itself where it matters (see
+   section_title() and render_channel_card()) so it can never be
+   overridden by Streamlit's own theme stylesheet cascade -- this
+   class-level rule is a secondary safety net only. */
 .channel-card, .channel-card * {
-    color: #0F172A !important;
+    color: #E2E8F0 !important;
+}
+.channel-card h4 {
+    color: #F8FAFC !important;
 }
 </style>
 """
@@ -627,8 +635,9 @@ def section_title(text: str):
             margin-bottom: 10px;
             padding: 8px 14px;
             border-radius: 8px;
-            background: #F1F5F9;
-            color: #0F172A;
+            background: #16213A;
+            border-left: 4px solid #1F5FBF;
+            color: #F8FAFC;
             display: inline-block;
         ">{text}</div>
         """,
@@ -645,13 +654,13 @@ def render_channel_card(col, channel: dict):
     # background and breaks text contrast under a dark viewer theme.
     card_html = f"""
     <div class="channel-card">
-        <h4 style="margin-top:0;">{channel['channel']}</h4>
+        <h4 style="margin-top:0; color:#F8FAFC;">{channel['channel']}</h4>
         <div class="decision-badge {decision_class}">{decision_icon} Decision: {channel['decision']}</div>
-        <div class="rate-tag">{channel['rate']:.2f}%</div>
-        <p style="font-size:13px; color:#64748B !important; margin-top:4px;">
+        <div class="rate-tag" style="color:#F8FAFC;">{channel['rate']:.2f}%</div>
+        <p style="font-size:13px; color:#94A3B8; margin-top:4px;">
             Annualized interest rate (dynamic, incl. time-of-day adjustment)
         </p>
-        <p style="margin-top:10px;">{channel['lenders']}</p>
+        <p style="margin-top:10px; color:#E2E8F0;">{channel['lenders']}</p>
         <span class="badge-regulated">REGULATED ENTITY</span>
     </div>
     """
