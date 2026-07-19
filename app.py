@@ -607,7 +607,33 @@ def render_risk_block(tier: int, probability: float):
     )
 
 
-def render_channel_card(col, channel: dict):
+def section_title(text: str):
+    """
+    Render a section header with a fully self-contained inline style
+    (background + text color both set inline). This is deliberately NOT
+    a shared CSS class: Streamlit's own theme stylesheet can be injected
+    into the DOM after our <style> block and win the cascade even against
+    !important rules of matching specificity. Inline styles on the element
+    itself always beat external stylesheets, so this is immune to both
+    light and dark viewer themes.
+    """
+    st.markdown(
+        f"""
+        <div style="
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: 20px;
+            margin-top: 14px;
+            margin-bottom: 10px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: #F1F5F9;
+            color: #0F172A;
+            display: inline-block;
+        ">{text}</div>
+        """,
+        unsafe_allow_html=True,
+    )
     decision_class = "decision-approved" if channel["decision"] == "APPROVED" else "decision-rejected"
     decision_icon = "✅" if channel["decision"] == "APPROVED" else "⛔"
     # Built as ONE html string in ONE st.markdown call -- splitting an opening
@@ -631,7 +657,7 @@ def render_channel_card(col, channel: dict):
 
 
 def render_batch_scoring(pipeline, final_features, final_categorical):
-    st.markdown('<div class="section-title">📂 Batch Scoring — Unseen Applications</div>', unsafe_allow_html=True)
+    section_title("📂 Batch Scoring — Unseen Applications")
     st.caption(
         "Score a full portfolio file at once. Defaults to the bundled unseen_dataset.csv; "
         "you may also upload your own file with a compatible schema."
@@ -743,11 +769,11 @@ def main():
         predicted_tier = int(np.argmax(proba))
         confidence = float(proba[predicted_tier])
 
-        st.markdown('<div class="section-title">1️⃣ Risk Profile</div>', unsafe_allow_html=True)
+        section_title("1️⃣ Risk Profile")
         render_risk_block(predicted_tier, confidence)
 
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown('<div class="section-title">2️⃣ Market Comparison</div>', unsafe_allow_html=True)
+        section_title("2️⃣ Market Comparison")
         pricing = evaluate_channels(predicted_tier, loan_amount, app_hour)
 
         if pricing["time_penalty"] > 0:
@@ -761,7 +787,7 @@ def main():
         render_channel_card(col2, pricing["digital"])
 
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown('<div class="section-title">3️⃣ Transparency — Why This Decision?</div>', unsafe_allow_html=True)
+        section_title("3️⃣ Transparency — Why This Decision?")
 
         # Encode the row for LIME the same way training data was encoded.
         lime_row = input_row_df.copy()
@@ -792,7 +818,7 @@ def main():
         render_batch_scoring(pipeline, final_features, final_categorical)
 
     with tab_diagnostics:
-        st.markdown('<div class="section-title">Feature Selection Report</div>', unsafe_allow_html=True)
+        section_title("Feature Selection Report")
         c1, c2, c3 = st.columns(3)
         with c1:
             st.markdown("**Chi-Square (categorical)**")
@@ -818,7 +844,7 @@ def main():
             st.dataframe(anova_df, hide_index=True, use_container_width=True, height=250)
 
         st.markdown("---")
-        st.markdown('<div class="section-title">Model Performance</div>', unsafe_allow_html=True)
+        section_title("Model Performance")
         st.metric("Hold-out Test Accuracy", f"{pipeline['test_accuracy'] * 100:.2f}%")
         st.write(f"Final feature count: **{len(final_features)}** "
                  f"({len(selection['final_numeric'])} numeric incl. EDUCATION, {len(final_categorical)} categorical)")
