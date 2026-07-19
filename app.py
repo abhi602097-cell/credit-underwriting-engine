@@ -634,6 +634,9 @@ def section_title(text: str):
         """,
         unsafe_allow_html=True,
     )
+
+
+def render_channel_card(col, channel: dict):
     decision_class = "decision-approved" if channel["decision"] == "APPROVED" else "decision-rejected"
     decision_icon = "✅" if channel["decision"] == "APPROVED" else "⛔"
     # Built as ONE html string in ONE st.markdown call -- splitting an opening
